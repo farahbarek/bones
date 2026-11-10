@@ -1,0 +1,24 @@
+# Dossier uploads (généré automatiquement par Flask)
+backend/uploads/
+
+# Fichiers Python compilés
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Environnement virtuel Python
+venv/
+env/
+.venv/
+
+# Fichiers système Windows
+Thumbs.db
+desktop.ini
+
+# Fichiers IDE
+.vscode/
+.idea/
+
+# Logs
+*.log

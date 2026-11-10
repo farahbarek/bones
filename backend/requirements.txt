@@ -1,0 +1,23 @@
+# =======================================================================
+#  requirements.txt  —  Liste des bibliothèques Python nécessaires
+#
+#  Installation : pip install -r requirements.txt
+# =======================================================================
+
+# Serveur web Flask (crée l'API HTTP)
+flask==3.0.3
+
+# CORS : permet au navigateur d'appeler le serveur Flask
+flask-cors==4.0.1
+
+# Lecture des fichiers DICOM médicaux (.dcm)
+pydicom==2.4.4
+
+# Calcul scientifique : tableaux multi-dimensionnels (notre volume 3D)
+numpy==1.26.4
+
+# Algorithme Marching Cubes (reconstruction de surface 3D)
+scikit-image==0.23.2
+
+# Traitement d'images et de volumes (filtres, zoom…)
+scipy==1.13.1

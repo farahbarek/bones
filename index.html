@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Reconstruction 3D DICOM – Os</title>
+  <meta name="description" content="Application de reconstruction 3D d'images DICOM 2D d'os"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+
+  <!-- ===== EN-TÊTE ===== -->
+  <header class="header">
+    <div class="header-inner">
+      <div class="logo">
+        <span class="logo-icon">🦴</span>
+        <span class="logo-text">OstoView <sup>3D</sup></span>
+      </div>
+      <p class="header-sub">Reconstruction volumétrique d'images DICOM</p>
+    </div>
+  </header>
+
+  <!-- ===== SECTION PRINCIPALE ===== -->
+  <main class="main">
+
+    <!-- ÉTAPE 1 : Upload -->
+    <section class="card upload-card" id="step-upload">
+      <div class="step-badge">Étape 1</div>
+      <h2>Charger vos images DICOM</h2>
+      <p class="hint">
+        Sélectionnez <strong>au moins 10</strong> fichiers DICOM (<code>.dcm</code>)
+        issus de coupes 2D d'un même os. L'ordre des fichiers détermine les tranches Z.
+      </p>
+
+      <!-- Zone de dépôt / clic -->
+      <label class="dropzone" id="dropzone" for="fileInput">
+        <div class="dz-icon">📂</div>
+        <div class="dz-title">Glissez-déposez vos fichiers ici</div>
+        <div class="dz-sub">ou cliquez pour parcourir</div>
+        <input
+          type="file"
+          id="fileInput"
+          accept=".dcm,application/dicom"
+          multiple
+          hidden
+        />
+      </label>
+
+      <!-- Compteur de fichiers -->
+      <div class="file-count" id="fileCount">Aucun fichier sélectionné</div>
+
+      <!-- Mini-galerie des aperçus -->
+      <div class="preview-grid" id="previewGrid"></div>
+
+      <!-- Bouton Reconstruire -->
+      <button class="btn-primary" id="btnReconstruct" disabled>
+        🔬 Reconstruire en 3D
+      </button>
+    </section>
+
+    <!-- ÉTAPE 2 : Barre de progression -->
+    <section class="card progress-card hidden" id="step-progress">
+      <div class="step-badge">Étape 2</div>
+      <h2>Traitement en cours…</h2>
+      <p id="progressLabel">Lecture des fichiers DICOM…</p>
+      <div class="progress-bar-bg">
+        <div class="progress-bar-fill" id="progressFill"></div>
+      </div>
+      <p class="progress-pct" id="progressPct">0 %</p>
+    </section>
+
+    <!-- ÉTAPE 3 : Visionneuse 3D -->
+    <section class="card viewer-card hidden" id="step-viewer">
+      <div class="step-badge">Étape 3</div>
+      <h2>Visualisation 3D</h2>
+
+      <div class="viewer-wrapper">
+        <!-- Canvas Three.js -->
+        <canvas id="canvas3d"></canvas>
+
+        <!-- Panneau de contrôles -->
+        <aside class="controls-panel">
+
+          <div class="ctrl-group">
+            <label>Seuil d'os (Bone Threshold)</label>
+            <input type="range" id="sliderThreshold" min="0" max="255" value="100"/>
+            <span id="valThreshold">100</span>
+          </div>
+
+          <div class="ctrl-group">
+            <label>Opacité</label>
+            <input type="range" id="sliderOpacity" min="0" max="100" value="90"/>
+            <span id="valOpacity">90 %</span>
+          </div>
+
+          <div class="ctrl-group">
+            <label>Couleur</label>
+            <div class="color-row">
+              <button class="color-btn active" data-color="#f0d9b5" title="Os naturel" style="background:#f0d9b5"></button>
+              <button class="color-btn" data-color="#c0e0ff" title="Bleu" style="background:#c0e0ff"></button>
+              <button class="color-btn" data-color="#ffb3b3" title="Rouge" style="background:#ffb3b3"></button>
+              <button class="color-btn" data-color="#b3ffb3" title="Vert" style="background:#b3ffb3"></button>
+            </div>
+          </div>
+
+          <div class="ctrl-group">
+            <label>Mode d'affichage</label>
+            <select id="selectMode">
+              <option value="surface">Surface (Mesh)</option>
+              <option value="wireframe">Fil de fer</option>
+              <option value="points">Nuage de points</option>
+            </select>
+          </div>
+
+          <div class="ctrl-group">
+            <label>Rotation auto</label>
+            <label class="toggle">
+              <input type="checkbox" id="chkAutoRotate" checked/>
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+
+          <button class="btn-secondary" id="btnReset">↺ Réinitialiser la vue</button>
+          <button class="btn-secondary" id="btnNewUpload">⬆ Nouveau chargement</button>
+
+          <!-- Infos fichiers -->
+          <div class="info-box" id="infoBox"></div>
+        </aside>
+      </div>
+
+      <!-- Légende tactile -->
+      <p class="viewer-hint">🖱 Clic gauche : rotation &nbsp;|&nbsp; Clic droit : déplacement &nbsp;|&nbsp; Molette : zoom</p>
+    </section>
+
+  </main>
+
+  <!-- ===== PIED DE PAGE ===== -->
+  <footer class="footer">
+    <p>OstoView 3D — Application pédagogique de reconstruction DICOM &nbsp;|&nbsp; 2026</p>
+  </footer>
+
+  <!-- ===== BIBLIOTHÈQUES EXTERNES ===== -->
+  <!--
+    Three.js  : affichage 3D dans le navigateur
+    dicomParser: lecture des fichiers DICOM
+  -->
+  <script src="https://cdn.jsdelivr.net/npm/three@0.165.0/build/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.165.0/examples/js/controls/OrbitControls.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dicom-parser@1.8.21/dist/dicomParser.min.js"></script>
+
+  <!-- Notre script principal -->
+  <script src="app.js"></script>
+
+</body>
+</html>
